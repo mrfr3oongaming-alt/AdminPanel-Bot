@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAHANGIR OTP - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        .header {
+            background: #16213e;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #0f3460;
+        }
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: #e94560;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+        .stat-card {
+            background: #16213e;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #0f3460;
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #e94560;
+        }
+        .stat-label {
+            color: #888;
+            margin-top: 5px;
+        }
+        .sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            padding: 0 30px 30px 30px;
+        }
+        .section {
+            background: #16213e;
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #0f3460;
+        }
+        .section-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #e94560;
+            border-bottom: 1px solid #0f3460;
+            padding-bottom: 10px;
+        }
+        .live-message {
+            background: #0f3460;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        .live-message .time {
+            color: #e94560;
+            font-size: 11px;
+        }
+        .live-message .number {
+            color: #00ff88;
+        }
+        .status-badge {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #00ff88;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 100%;
+        }
+        .button:hover {
+            background: #c73e56;
+        }
+        .logout-btn {
+            background: transparent;
+            border: 1px solid #e94560;
+            color: #e94560;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .logout-btn:hover {
+            background: #e94560;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">📱 JAHANGIR OTP</div>
+        <div>
+            <span style="margin-right: 15px;">Welcome, {{ username }}</span>
+            <a href="/logout" class="logout-btn">LOGOUT</a>
+        </div>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.total_users }}</div>
+            <div class="stat-label">TOTAL USERS</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.active_numbers }}</div>
+            <div class="stat-label">ACTIVE NUMBERS</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.total_otps }}</div>
+            <div class="stat-label">TOTAL OTPs</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ stats.total_users - stats.banned_users }}</div>
+            <div class="stat-label">LIVE OTPs</div>
+        </div>
+    </div>
+    
+    <div class="sections">
+        <div class="section">
+            <div class="section-title">
+                <span class="status-badge"></span> LIVE SMS
+            </div>
+            {% for log in logs[:10] %}
+            <div class="live-message">
+                <div class="time">{{ log[5] if log[5] else '' }}</div>
+                <div class="number">+{{ log[1] }}</div>
+                <div>{{ log[3][:80] }}...</div>
+            </div>
+            {% else %}
+            <div class="live-message">No messages yet...</div>
+            {% endfor %}
+        </div>
+        
+        <div class="section">
+            <div class="section-title">YOUR NUMBERS</div>
+            {% for num in active_numbers %}
+            <div class="live-message">
+                <div class="number">+{{ num[0] }}</div>
+                <div>User ID: {{ num[1] or 'Unassigned' }}</div>
+            </div>
+            {% else %}
+            <div class="live-message">No active numbers</div>
+            {% endfor %}
+            <button class="button" onclick="location.reload()">REFRESH OTP</button>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">+ NUMBER GENERATOR</div>
+            <div>All Countries Available</div>
+            <button class="button" onclick="alert('Use Telegram Bot to get numbers!')">GET NUMBER</button>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">API DOCUMENTATION</div>
+            <div style="font-size: 12px; font-family: monospace;">
+                <strong>GET /api/my_numbers</strong> - Get your numbers<br>
+                <strong>GET /api/my_otps?limit=50</strong> - Get OTPs<br>
+                <strong>GET /api/latest_otp</strong> - Get latest OTP
+            </div>
+        </div>
+    </div>
+</body>
+</html>
