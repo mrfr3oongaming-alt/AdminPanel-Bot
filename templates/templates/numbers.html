@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAHANGIR OTP - Numbers</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        .header {
+            background: #16213e;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #0f3460;
+        }
+        .logo { font-size: 20px; font-weight: bold; color: #e94560; }
+        .nav-links a {
+            color: #eee;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+        }
+        .nav-links a:hover { background: #0f3460; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .card {
+            background: #16213e;
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #0f3460;
+            margin-bottom: 20px;
+        }
+        .card h2 { color: #e94560; margin-bottom: 20px; }
+        .actions {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .btn-secondary { background: #0f3460; }
+        .btn:hover { opacity: 0.9; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #0f3460;
+        }
+        th { color: #e94560; }
+        .delete-btn {
+            background: #e94560;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .add-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .add-form input {
+            flex: 1;
+            padding: 10px;
+            background: #0f3460;
+            border: 1px solid #1a4a7a;
+            border-radius: 8px;
+            color: white;
+        }
+        select {
+            padding: 10px;
+            background: #0f3460;
+            border: 1px solid #1a4a7a;
+            border-radius: 8px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">📱 JAHANGIR OTP</div>
+        <div class="nav-links">
+            <a href="/dashboard">DASHBOARD</a>
+            <a href="/settings">BOT SETTINGS</a>
+            <a href="/numbers">NUMBERS</a>
+            <a href="/logout">LOGOUT</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="card">
+            <h2>📞 AVAILABLE NUMBERS</h2>
+            <div class="actions">
+                <button class="btn" onclick="downloadNumbers()">📥 DOWNLOAD ALL NUMBERS (ZIP)</button>
+            </div>
+            
+            <h3>Add New Number</h3>
+            <div class="add-form">
+                <input type="text" id="new_number" placeholder="Number (e.g., 201234567890)">
+                <input type="text" id="country_name" placeholder="Country Name (e.g., Egypt)">
+                <input type="text" id="country_code" placeholder="Country Code (e.g., 20)">
+                <select id="service">
+                    <option value="General">General</option>
+                    <option value="WhatsApp">WhatsApp</option>
+                    <option value="Telegram">Telegram</option>
+                    <option value="Google">Google</option>
+                </select>
+                <button class="btn" onclick="addNumber()">➕ ADD</button>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr><th>Number</th><th>Country</th><th>Code</th><th>Service</th><th>Action</th></tr>
+                </thead>
+                <tbody id="numbersTable">
+                    {% for num in numbers %}
+                    <tr data-number="{{ num[0] }}">
+                        <td>{{ num[0] }}</td>
+                        <td>{{ num[2] or num[1] }}</td>
+                        <td>{{ num[1] }}</td>
+                        <td>{{ num[3] }}</td>
+                        <td><button class="delete-btn" onclick="deleteNumber('{{ num[0] }}')">🗑️</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        function addNumber() {
+            const number = document.getElementById('new_number').value;
+            const country_name = document.getElementById('country_name').value;
+            const country_code = document.getElementById('country_code').value;
+            const service = document.getElementById('service').value;
+            
+            if (!number) {
+                alert('Please enter a number');
+                return;
+            }
+            
+            fetch('/api/add_number', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ number, country_name, country_code, service })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+        
+        function deleteNumber(number) {
+            if (confirm('Delete ' + number + '?')) {
+                fetch('/api/delete_number/' + number, { method: 'DELETE' })
+                .then(() => location.reload());
+            }
+        }
+        
+        function downloadNumbers() {
+            window.location.href = '/api/download_numbers';
+        }
+    </script>
+</body>
+</html>
